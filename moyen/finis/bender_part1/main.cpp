@@ -51,6 +51,7 @@ enum Objet {
 };
 
 struct Position {
+    Position(int X, int Y) { x = X; y = Y; }
     int x = 0;
     int y = 0;
 
@@ -62,13 +63,13 @@ struct Position {
 Position newPosition(Position actuel, Direction dir) {
     switch(dir) {
         case SUD:
-            return {actuel.x, actuel.y - 1};
+            return Position(actuel.x, actuel.y + 1);
         case EST:
-            return {actuel.x + 1, actuel.y};
+            return Position(actuel.x + 1, actuel.y);
         case NORD:
-            return {actuel.x, actuel.y + 1};
+            return Position(actuel.x, actuel.y - 1);
         case OUEST:
-            return {actuel.x - 1, actuel.y};
+            return Position(actuel.x - 1, actuel.y);
     }
 }
 
@@ -99,7 +100,7 @@ int main(int argc, char **argv) {
         cin >> L >> C; cin.ignore();
         Objet carte[C][L];
         vector<Position> teleporteurs;
-        Position posBender;
+        Position posBender(0, 0);
         bool biere = false;
         bool inverseur = false;
         Direction directionActuelle = SUD;
@@ -110,6 +111,7 @@ int main(int argc, char **argv) {
         for (int y = 0 ; y < L ; y++) {
             string row;
             getline(cin, row);
+            cerr << row;
             for(int x = 0 ; x < C ; x++) {
                 carte[x][y] = (Objet)row[x];
 
@@ -124,13 +126,16 @@ int main(int argc, char **argv) {
                     default:
                         break;
                 }
-            }
-        }
+            }cerr << endl;
+        }cerr << endl;
 
         /// SIMULATION ///
         string answer;
 
+        //cerr << "Position initiale de Bender : (" << posBender.x << ", " << posBender.y << ')' << endl;
         while(!cabineAtteinte) {
+
+            //cerr << "Position de Bender : X = " << posBender.x << " ; Y = " << posBender.y << endl;
             // On vérifie que Bender ne soit pas dans une boucle (ie qu'il a déjà été dans la même configuration)
             bool loop = false;
             Etat etatBender = {posBender, directionActuelle, inverseur, biere};
@@ -140,69 +145,99 @@ int main(int argc, char **argv) {
                     break;
                 }
             }
-
             if(loop) {
                 answer = "LOOP";
                 break;
             } else {
+                bool modifDirection = false;
+                Direction directionFuture = SUD;
+
                 etatsPrecedents.push_back(etatBender);
                 Position newPos = newPosition(posBender, directionActuelle);
                 // On avance d'un pas
                 switch (carte[newPos.x][newPos.y]) {
                     case VIDE: {
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : VIDE" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
+
                         break;}
 
                     case DEPART: {
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : DEPART" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
                         break;}
 
                     case CABINE: {
                         cabineAtteinte = true;
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : CABINE" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
                         break;}
 
                     case BIERE: {
                         biere = !biere;
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : BIERE" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
                         break;}
 
                     case TELEPORTEUR: {
-                        Position teleporteur1 = teleporteurs[0];
-                        posBender = (teleporteur1 == posBender ? teleporteurs[1] : teleporteur1);
+                        if(newPos == teleporteurs[0])
+                            posBender = teleporteurs[1];
+                        else
+                            posBender = teleporteurs[0];
+
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : TELEPORTEUR ; goto (" << posBender.x << ", " << posBender.y << ')' << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         break;}
 
                     case INVERSEUR: {
                         inverseur = !inverseur;
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : INVERSEUR" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
                         break;}
 
                     case MODIF_OUEST: {
-                        directionActuelle = OUEST;
+                        modifDirection = true;
+                        directionFuture = OUEST;
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : MODIF_OUEST" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
                         break;}
 
                     case MODIF_EST: {
-                        directionActuelle = EST;
+                        modifDirection = true;
+                        directionFuture = EST;
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : MODIF_EST" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
                         break;}
 
                     case MODIF_NORD: {
-                        directionActuelle = NORD;
+                        modifDirection = true;
+                        directionFuture = NORD;
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : MODIF_NORD" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
                         break;}
 
                     case MODIF_SUD: {
-                        directionActuelle = SUD;
+                        modifDirection = true;
+                        directionFuture = SUD;
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : MODIF_SUD" << endl;
+                        //cerr << "Bender passe de (" << posBender.x << ", " << posBender.y << ") à (" << newPos.x << ", " << newPos.y << ')' << endl;
                         posBender = newPos;
                         break;}
 
                     case OBSTACLE: {
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : OBSTACLE" << endl;
                         if (biere) {
                             posBender = newPos;
                             carte[newPos.x][newPos.y] = VIDE;
-                            // il faudrait check si un état précédent empéchait Bender de passer ici mais
-                            // que maintenant qu'il n'y a plus d'obstacle il peut passer mais on pense qu'il est en LOOP
+                            etatsPrecedents.clear();
                         } else {
                             // On choisit la direction suivante
                             directionActuelle = (inverseur ? OUEST : SUD);
@@ -214,17 +249,23 @@ int main(int argc, char **argv) {
                         break;}
 
                     case BORDURE: {
+                        //cerr << "case (" << newPos.x << ", " << newPos.y << ") : BORDURE" << endl;
                         directionActuelle = (inverseur ? OUEST : SUD);
                         while(carte[newPosition(posBender, directionActuelle).x][newPosition(posBender, directionActuelle).y] == OBSTACLE
                               || carte[newPosition(posBender, directionActuelle).x][newPosition(posBender, directionActuelle).y] == BORDURE) {
                             directionActuelle = getNext(directionActuelle, inverseur);
                         }
-                        //newPos = newPosition(posBender, directionActuelle);
                         break;}
                 }
 
                 if(carte[newPos.x][newPos.y] != BORDURE && (carte[newPos.x][newPos.y] != OBSTACLE && !biere))
                     answer += to_string(directionActuelle) + "\n";
+                else if(carte[newPos.x][newPos.y] != BORDURE && biere)
+                    answer += to_string(directionActuelle) + "\n";
+                //if(carte[newPos.x][newPos.y] != BORDURE && (carte[newPos.x][newPos.y] != OBSTACLE))
+                //    cerr << "CHANGEMENT DE DIRECTION EFFECTUE (" << to_string(directionActuelle) << ")\n" << endl;
+                if(modifDirection)
+                    directionActuelle = directionFuture;
             }
         }
 
@@ -235,7 +276,7 @@ int main(int argc, char **argv) {
         getline(cin, goodAnswer);
         if(goodAnswer != answer) {
             testsOk = false;
-            cerr << "\n\n Trouvé : " << answer << endl;
+            cerr << "\n\nTrouvé : " << answer << endl;
             cerr << "Attendu : " << goodAnswer << endl;
         }
     }
