@@ -56,7 +56,6 @@ int main()
     pair<int, int> newPosition{X0, Y0};
 
     // game loop
-    bool centroid = false;
     while (1) {
         string BOMB_DIST; // Current distance to the bomb compared to previous distance (COLDER, WARMER, SAME or UNKNOWN)
         cin >> BOMB_DIST; cin.ignore();

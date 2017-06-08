@@ -58,6 +58,7 @@ add_subdirectory(moyen/finis/teads_sponsored_challenge)
 add_subdirectory(moyen/finis/there_is_no_spoon_part1)
 
 add_subdirectory(difficile/en_cours/power_of_Thor_part2)
+add_subdirectory(difficile/en_cours/reseau_TAN)
 add_subdirectory(difficile/en_cours/skynet_revolution_part2)
 add_subdirectory(difficile/finis/montagnes_russes)
 
